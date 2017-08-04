@@ -41,8 +41,6 @@ module mdio_controller #(
   localparam PREAMBLE_LENGTH = 32;
   localparam START_LENGTH = 2;
   localparam OPERATION_LENGTH = 2;
-  localparam PHYADDR_LENGTH = 5;
-  localparam REGADDR_LENGTH = 5;
   localapram TURNAROUND_LENGTH = 2;
   localparam COMMAND_LENGTH = START_LENGTH+OPERATION_LENGTH+PHYADDR_LENGTH+REGADDR_LENGTH;
   
