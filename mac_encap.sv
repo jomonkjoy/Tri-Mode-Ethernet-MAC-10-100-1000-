@@ -11,7 +11,7 @@ module mac_encap #(
   input  logic        tuser,
   input  logic        tlast,
   
-  input  logic [1:0]  speed_mode,
+  input  logic [1:0]  speed_mode, // 1000(1Gbps)/100/10 Mbps
   input  logic [47:0] mac_address,
   
   output logic        gtx_clk,    // Clock signal for gigabit TX signals (125 MHz)
@@ -29,6 +29,26 @@ module mac_encap #(
   localparam PREAMBLE_DATA = 8'h55;
   localparam SFD_DATA = 8'hD5;
   localparam IFG_DATA = 8'h00;
+  
+  // clock divider logic for Tri-Mode [1G/100M/10Mbps]
+  localparam CLOCK_DIVIDER_100M = 10;
+  localparam CLOCK_DIVIDER_10M = 100;
+  localparam CLKDIV_WIDTH = $clog2(CLOCK_DIVIDER_10M);
+  logic [CLKDIV_WIDTH-1:0] clk_div = {CLKDIV_WIDTH{1'b0}};
+
+  always_ff @(posedge clk) begin
+    if (reset) begin
+      clk_div <= {CLKDIV_WIDTH{1'b0}};
+    end else begin
+      if (clk_div >= CLOCK_DIVIDER_100M-1 && speed_mode[0]) begin
+        clk_div <= {CLKDIV_WIDTH{1'b0}};
+      end else if (clk_div >= CLOCK_DIVIDER_10M-1) begin
+        clk_div <= {CLKDIV_WIDTH{1'b0}};
+      end else begin
+        clk_div <= clk_div + 1;
+      end
+    end
+  end
   
   typedef enum {
     IDLE,
@@ -65,7 +85,16 @@ module mac_encap #(
               | state == IDLE && ~tready && tvalid;
   
   assign gtx_clk = clk;
-  assign clk_enable = 1;
+  
+  always_ff @(posedge clk) begin
+    if (speed_mode[1]) begin
+      clk_enable <= 1'b1; // 1Gbps-speed
+    end else if (speed_mode[0]) begin
+      clk_enable <= clk_div >= CLOCK_DIVIDER_100M-1; // 100Mbps-speed
+    end else begin
+      clk_enable <= clk_div >= CLOCK_DIVIDER_10M-1; // 10Mbps-speed
+    end
+  end
   
   always_ff @(posedge clk) begin
     case (state)
@@ -90,7 +119,7 @@ module mac_encap #(
     if (reset) begin
       state <= IDLE;
       count <= {COUNT_WDTH{1'b0}};
-    end else begin
+    end else if (clk_enable) begin
       case (state)
         IDLE : begin
           if (~tready && tvalid) begin
