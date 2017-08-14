@@ -3,17 +3,16 @@
 // CRC module for data[7:0] ,   crc[31:0]=1+x^1+x^2+x^4+x^5+x^7+x^8+x^10+x^11+x^12+x^16+x^22+x^23+x^26+x^32;
 //-----------------------------------------------------------------------------
 module ethernet_crc32 #(
-  parameter logic [32:0] POLYNOMIAL = 33'h104C11DB7
+  parameter DATA_WIDTH = 8,
+  parameter POLY_WIDTH = 32,
+  parameter POLYNOMIAL = 33'h104C11DB7
   ) (
-  input  logic        clk,
-  input  logic        reset,
-  input  logic        crc_en,
-  input  logic [7:0]  data_in,
-  output logic [31:0] crc_out
+  input  logic                  clk,
+  input  logic                  reset,
+  input  logic                  crc_en,
+  input  logic [DATA_WIDTH-1:0] data_in,
+  output logic [POLY_WIDTH-1:0] crc_out
   );
-  
-  localparam DATA_WIDTH = 8;
-  localparam POLY_WIDTH = 32;
   
   function [POLY_WIDTH-1:0] update_crc;
     input [POLY_WIDTH-1:0] old_crc;
