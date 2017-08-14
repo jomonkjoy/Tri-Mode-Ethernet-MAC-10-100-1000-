@@ -43,6 +43,8 @@ module mac_decap #(
   localparam COUNT_WDTH = $clog2(MAX_FRAME_LENGTH);
   logic [COUNT_WDTH-1:0] count = {COUNT_WDTH{1'b0}};
   
+  logic [FCS_LENGTH*8-1:0] crc_cal;
+  
   always_ff @(posedge clk) begin
     if (state == DATA && ~gmii_rxdv) begin
       tuser <= gmii_rxer | count <= MIN_FRAME_LENGTH+FCS_LENGTH-1 | count >= MAX_FRAME_LENGTH+FCS_LENGTH-1 | crc_cal != CRC32_RESIDUE;
@@ -95,5 +97,13 @@ module mac_decap #(
       endcase
     end
   end
+  
+  ethernet_crc32 ethernet_crc32_inst (
+    .clk     (clk),
+    .reset   (state == IDLE),
+    .crc_en  (state == DATA),
+    .data_in (gmii_rxd),
+    .crc_out (crc_cal)
+  );
   
 endmodule
