@@ -180,5 +180,13 @@ module mac_encap #(
       endcase
     end
   end
+  
+  ethernet_crc32 ethernet_crc32_inst (
+    .clk     (clk),
+    .reset   (state == IDLE),
+    .crc_en  (state == DATA),
+    .data_in (tready && tvalid ? tdata : IFG_DATA),
+    .crc_out (crc_cal)
+  );
 
 endmodule
