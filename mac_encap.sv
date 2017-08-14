@@ -77,7 +77,7 @@ module mac_encap #(
   end
   
   logic frame_valid;
-  frame_valid = state == PREAMBLE 
+  assign frame_valid = state == PREAMBLE 
               | state == SFD 
               | state == DATA 
               | state == FCS 
