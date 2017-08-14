@@ -64,17 +64,15 @@ module mac_encap #(
   localparam COUNT_WDTH = $clog2(MAX_FRAME_LENGTH);
   logic [COUNT_WDTH-1:0] count = {COUNT_WDTH{1'b0}};
   
-  logic [31:0] crc_cal;
-  logic [7:0] crc_data;
+  logic [FCS_LENGTH*8-1:0] crc_cal;
+  logic [7:0] fcs [FCS_LENGTH];
   
-  always_comb begin
-    case (count[1:0])
-      2'b00 : crc_data = crc_cal[31:24];
-      2'b01 : crc_data = crc_cal[23:16];
-      2'b10 : crc_data = crc_cal[15:08];
-      2'b11 : crc_data = crc_cal[07:00];
-    endcase
-  end
+  genvar i;
+  generate
+    for (i=0; i<FCS_LENGTH; i++) begin
+      assign fcs[FCS_LENGTH-1-i] = crc_cal[8*i+7:8*i];
+    end
+  endgenerate
   
   logic frame_valid;
   assign frame_valid = state == PREAMBLE 
@@ -102,7 +100,7 @@ module mac_encap #(
       PREAMBLE : gmii_txd <= PREAMBLE_DATA;
       SFD      : gmii_txd <= SFD_DATA;
       DATA     : gmii_txd <= tready && tvalid ? tdata : IFG_DATA;
-      FCS      : gmii_txd <= crc_data;
+      FCS      : gmii_txd <= fcs[count[$clog2(FCS_LENGTH)-1:0]];
       default  : gmii_txd <= IFG_DATA;
     endcase
   end
