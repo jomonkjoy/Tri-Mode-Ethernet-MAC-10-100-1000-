@@ -1,5 +1,5 @@
 // MAC Frame-encapsulation
-module mac_encap #(
+module ethernet_mac_encap #(
   parameter MIN_PAYLOAD_LENGTH = 46,
   parameter MAX_PAYLOAD_LENGTH = 1500
   ) (
