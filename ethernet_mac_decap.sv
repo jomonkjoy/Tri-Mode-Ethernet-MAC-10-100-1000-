@@ -1,5 +1,5 @@
 // MAC Frame-decapsulation
-module mac_decap #(
+module ethernet_mac_decap #(
   parameter MIN_PAYLOAD_LENGTH = 46,
   parameter MAX_PAYLOAD_LENGTH = 1500
   ) (
